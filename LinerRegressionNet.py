@@ -66,7 +66,7 @@ if __name__ == '__main__':
                            dtype=torch.float32)  # 随机生成的样本，符合标准正态分布
     labels = true_w[0] * features[:, 0] + true_w[1] * features[:, 1] + true_b  # 标签
     labels += torch.tensor(np.random.normal(0, 0.01, size=labels.size()),
-                           dtype=torch.float32).view(-1, 1)  # 对标签加上符合(0,0.1^2)正态分布的噪声
+                           dtype=torch.float32)  # 对标签加上符合(0,0.1^2)正态分布的噪声
 
     # 查看数据生成结果的特征和标签的前5行
     # print(features[:5, ])
@@ -90,22 +90,32 @@ if __name__ == '__main__':
 
     net = LinearRegression
     loss = squaredLoss
+    lastMeanLoss = 0
 
     for epoch in range(numEpochs):  # 训练模型一共需要num_epochs个迭代周期
         # 在每一个迭代周期中,会使用训练数据集中所有样本一次(假设样本数能够被批量大小整除)。
         # X和y分别是小批量样本的特征和标签,由dataIter()产生
         for X, y in dataIter(batchSize, features, labels):
             y_predict = net(X, w, b)
-            l = loss(y_predict, y).sum().item()  # l是有关小批量X和y的损失的平均，是标量
+            l = loss(y_predict, y).sum()  # l是有关小批量X和y的损失的平均，是标量
             l.backward()  # 小批量的平均损失对模型参数求梯度
             sgd([w, b], learningRate, batchSize)  # 使用小批量随机梯度下降迭代模型参数
 
-            # 每次迭代最后不要忘了梯度清零
+            # 不要忘了梯度清零
             w.grad.data.zero_()
             b.grad.data.zero_()
 
-        # 训练结束，计算总损失向量
+        # 本次迭代训练结束，计算总损失向量
         trainLoss = loss(net(features, w, b), labels)
+        # 输出本次迭代的结果
+        print("epoch times: %d, total mean loss %f" % (epoch + 1, trainLoss.mean().item()))
+        lastMeanLoss = trainLoss  # 更新lastMeanLoss
 
-        # 输出结果
-        print('epoch times: %d, total mean loss %f' % (epoch + 1, trainLoss.mean().item()))
+    # 输出最终结果
+    print("-----------训练结束,最终结果如下-----------")
+    print("last total mean loss %f" % (lastMeanLoss.mean().item()))
+    print("----------------------------------------")
+    print("true_w:", true_w)
+    print("predict_w:", w.tolist())
+    print("true_b:", true_b)
+    print("predict_b:", b.tolist())
