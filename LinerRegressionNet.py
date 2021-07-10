@@ -1,8 +1,11 @@
-import random
 import numpy as np
 import torch
 from IPython import display
 from matplotlib import pyplot as plt
+import torch.utils.data as Data
+import torch.nn as nn
+from torch.nn import init
+import torch.optim as optim
 
 # 全局变量,控制是否显示绘图
 isShowFigure = False
@@ -29,33 +32,6 @@ def showFigure():
         plt.show()
 
 
-# 小批次样本选取迭代函数，每次返回batch_size(批量大小)个随机样本的特征和标签。
-def dataIter(batchSize, features, labels):
-    numExamples = len(features)
-    indices = list(range(numExamples))
-    random.shuffle(indices)  # 样本的读取顺序是随机的
-    for i in range(0, numExamples, batchSize):
-        j = torch.LongTensor(indices[i: min(i + batchSize, numExamples)])  # 最后一次可能不足一个batch
-        yield features.index_select(0, j), labels.index_select(0, j)
-
-
-# 线性回归的计算模型函数
-def LinearRegression(X, w, b):
-    return torch.mm(X, w) + b
-
-
-# 平方损失函数
-def squaredLoss(y_predict, y):
-    return (y_predict - y.view(y_predict.size())) ** 2 / 2
-
-
-# SGD(随机梯度下降)函数
-def sgd(params, learningRate, batchSize):
-    for param in params:
-        # 注意这里更改param时用的param.data
-        param.data -= learningRate * param.grad / batchSize
-
-
 if __name__ == '__main__':
     # 生成数据集
     numInputs = 2  # 特征维度为2
@@ -78,44 +54,52 @@ if __name__ == '__main__':
     showFigure()
 
     batchSize = 10
+    # 将训练数据的特征和标签组合
+    dataSet = Data.TensorDataset(features, labels)
+    # 随机读取小批量
+    dataIter = Data.DataLoader(dataSet, batchSize, shuffle=True)
+
     # 打印第一个批次选取出的batch_size样本特征和标签
-    for X, y in dataIter(batchSize, features, labels):
+    for X, y in dataIter:
         print(X)
         print(y)
         break
 
-    # 初始化模型参数,将权重w初始化成均值为0、标准差为0.01的正态随机数,偏差b则初始化成0
-    w = torch.tensor(np.random.normal(0, 0.01, (numInputs, 1)), requires_grad=True, dtype=torch.float32)
-    b = torch.zeros(1, requires_grad=True, dtype=torch.float32)
+    # 用nn.Sequential来更加方便地搭建网络
+    net = nn.Sequential(
+        nn.Linear(numInputs, 1)
+        # 此处还可以传入其他层
+    )
 
-    net = LinearRegression
-    loss = squaredLoss
-    lastMeanLoss = 0
+    # 初始化模型参数
+    init.normal_(net[0].weight, mean=0, std=0.01)
+    init.constant_(net[0].bias, val=0)
 
-    for epoch in range(numEpochs):  # 训练模型一共需要num_epochs个迭代周期
-        # 在每一个迭代周期中,会使用训练数据集中所有样本一次(假设样本数能够被批量大小整除)。
-        # X和y分别是小批量样本的特征和标签,由dataIter()产生
-        for X, y in dataIter(batchSize, features, labels):
-            y_predict = net(X, w, b)
-            l = loss(y_predict, y).sum()  # l是有关小批量X和y的损失的平均，是标量
-            l.backward()  # 小批量的平均损失对模型参数求梯度
-            sgd([w, b], learningRate, batchSize)  # 使用小批量随机梯度下降迭代模型参数
+    # 定义损失函数为MSE损失函数
+    loss = nn.MSELoss()
 
-            # 不要忘了梯度清零
-            w.grad.data.zero_()
-            b.grad.data.zero_()
+    # 定义优化函数
+    optimizer = optim.SGD(net.parameters(), lr=0.03)
 
-        # 本次迭代训练结束，计算总损失向量
-        trainLoss = loss(net(features, w, b), labels)
-        # 输出本次迭代的结果
-        print("epoch times: %d, total mean loss %f" % (epoch + 1, trainLoss.mean().item()))
-        lastMeanLoss = trainLoss  # 更新lastMeanLoss
+    # 进行迭代训练
+    for epoch in range(0, numEpochs):
+        for X, y in dataIter:
+            output = net(X)
+            l = loss(output, y.view(-1, 1))
+            optimizer.zero_grad()  # 梯度清零，等价于net.zero_grad()
+            l.backward()
+            optimizer.step()
+
+        totMSE = loss(net(features), labels.view(-1, 1))
+        print('epoch times: %d, loss: %f' % (epoch + 1, totMSE.item()))
 
     # 输出最终结果
+    dense = net[0]
+
     print("-----------训练结束,最终结果如下-----------")
-    print("last total mean loss %f" % (lastMeanLoss.mean().item()))
+    print("last total mean loss %f" % (loss(net(features), labels.view(-1, 1)).item()))
     print("----------------------------------------")
     print("true_w:", true_w)
-    print("predict_w:", w.tolist())
+    print("predict_w:", dense.weight)
     print("true_b:", true_b)
-    print("predict_b:", b.tolist())
+    print("predict_b:", dense.bias)
