@@ -1,36 +1,15 @@
 import numpy as np
-import torch
-from IPython import display
-from matplotlib import pyplot as plt
-import torch.utils.data as Data
 import torch.nn as nn
-from torch.nn import init
 import torch.optim as optim
+import torch.utils.data as Data
+from torch.nn import init
 
-# 全局变量,控制是否显示绘图
-isShowFigure = False
+from MyUtils.Utils import *
+
 # 超参数，学习率
 learningRate = 0.03
 # 超参数，迭代次数
 numEpochs = 5
-
-
-# 用矢量图显示
-def useSvgDisplay():
-    display.set_matplotlib_formats('svg')
-
-
-# 设置图的尺寸
-def setFigureSize(figureSize=(3.5, 2.5)):
-    useSvgDisplay()
-    plt.rcParams['figure.figsize'] = figureSize
-
-
-# 根据全局变量isShowFigure的值来决定是否显示matplotlib库中的绘图函数的绘图
-def showFigure():
-    if isShowFigure:
-        plt.show()
-
 
 if __name__ == '__main__':
     # 生成数据集
