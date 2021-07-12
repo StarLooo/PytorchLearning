@@ -6,6 +6,7 @@ import torchvision
 import torchvision.transforms as transforms
 from IPython import display
 from matplotlib import pyplot as plt
+import torch.nn as nn
 
 # 全局变量,控制是否显示绘图
 isShowFigure = True
@@ -131,6 +132,15 @@ def evaluate_accuracy(data_iter, net):
         acc_sum += accuracy(net(X), y)
         n += y.shape[0]
     return acc_sum / n
+
+
+class FlattenLayer(nn.Module):
+    def __init__(self):
+        super(FlattenLayer, self).__init__()
+
+    @staticmethod
+    def forward(x):  # x shape: (batch, *, *, ...)
+        return x.view(x.shape[0], -1)
 
 
 # 通用训练函数

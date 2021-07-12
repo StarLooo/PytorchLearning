@@ -10,15 +10,6 @@ num_epochs = 5
 # 超参数:学习率0.1
 lr = 0.1
 
-
-class FlattenLayer(nn.Module):
-    def __init__(self):
-        super(FlattenLayer, self).__init__()
-
-    def forward(self, x):  # x shape: (batch, *, *, ...)
-        return x.view(x.shape[0], -1)
-
-
 if __name__ == '__main__':
     batch_size = 256
     train_iter, test_iter = load_data_fashion_mnist(batch_size)
