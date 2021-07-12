@@ -8,8 +8,6 @@ from IPython import display
 from matplotlib import pyplot as plt
 
 # 全局变量,控制是否显示绘图
-from torch import nn
-
 isShowFigure = True
 
 
@@ -165,10 +163,10 @@ def train(net, train_iter, test_iter, loss, num_epochs, batch_size,
               % (epoch + 1, train_l_sum / num_sample, train_acc_sum / num_sample, test_acc))
 
 
-# 平坦展开层
-class FlattenLayer(nn.Module):
-    def __init__(self):
-        super(FlattenLayer, self).__init__()
-
-    def forward(self, x):  # x shape: (batch_size, *, *, ...)
-        return x.view(x.shape[0], -1)
+# 绘制y-x图的函数
+def xy_plot(x_values, y_values, name):
+    setFigureSize(figureSize=(5, 2.5))
+    plt.plot(x_values.detach().numpy(), y_values.detach().numpy())
+    plt.xlabel('x')
+    plt.ylabel(name + '(x)')
+    showFigure()
