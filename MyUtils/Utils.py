@@ -161,3 +161,12 @@ def train(net, train_iter, test_iter, loss, num_epochs, batch_size,
         test_acc = evaluate_accuracy(test_iter, net)
         print('epoch %d, loss %.4f, train acc %.3f, test acc %.3f'
               % (epoch + 1, train_l_sum / num_sample, train_acc_sum / num_sample, test_acc))
+
+
+# 绘制y-x图的函数
+def xy_plot(x_values, y_values, name):
+    setFigureSize(figureSize=(5, 2.5))
+    plt.plot(x_values.detach().numpy(), y_values.detach().numpy())
+    plt.xlabel('x')
+    plt.ylabel(name + '(x)')
+    showFigure()

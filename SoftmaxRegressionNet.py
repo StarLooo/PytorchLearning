@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     # 展示训练成果
     # 选取第一组小批量的测试集数据
-    X, y = test_iter.__next__()
+    X, y = iter(test_iter).__next__()
 
     true_labels = get_fashion_mnist_labels(y.numpy())
     pred_labels = get_fashion_mnist_labels(softmax_net(X).argmax(dim=1).numpy())
