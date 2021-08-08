@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from MyUtils import Utils
+from MyUtils import utils
 from matplotlib import pyplot as plt
 
 # 超参数，学习率
@@ -25,13 +25,13 @@ if __name__ == '__main__':
     # print(labels[:5])
 
     # 查看标签与第二维特征的散点关系图
-    Utils.setFigureSize()
+    utils.setFigureSize()
     plt.scatter(features[:, 1].numpy(), labels.numpy(), 1)
-    Utils.showFigure()
+    utils.showFigure()
 
     batchSize = 10
     # 打印第一个批次选取出的batch_size样本特征和标签
-    for X, y in Utils.dataIter(batchSize, features, labels):
+    for X, y in utils.dataIter(batchSize, features, labels):
         print(X)
         print(y)
         break
@@ -40,18 +40,18 @@ if __name__ == '__main__':
     w = torch.tensor(np.random.normal(0, 0.01, (numInputs, 1)), requires_grad=True, dtype=torch.float32)
     b = torch.zeros(1, requires_grad=True, dtype=torch.float32)
 
-    net = Utils.LinearRegression
-    loss = Utils.squaredLoss
+    net = utils.LinearRegression
+    loss = utils.squaredLoss
     lastMeanLoss = 0
 
     for epoch in range(numEpochs):  # 训练模型一共需要num_epochs个迭代周期
         # 在每一个迭代周期中,会使用训练数据集中所有样本一次(假设样本数能够被批量大小整除)。
         # X和y分别是小批量样本的特征和标签,由dataIter()产生
-        for X, y in Utils.dataIter(batchSize, features, labels):
+        for X, y in utils.dataIter(batchSize, features, labels):
             y_predict = net(X, w, b)
             l = loss(y_predict, y).sum()  # l是有关小批量X和y的损失的平均，是标量
             l.backward()  # 小批量的平均损失对模型参数求梯度
-            Utils.sgd([w, b], learningRate, batchSize)  # 使用小批量随机梯度下降迭代模型参数
+            utils.sgd([w, b], learningRate, batchSize)  # 使用小批量随机梯度下降迭代模型参数
 
             # 不要忘了梯度清零
             w.grad.data.zero_()

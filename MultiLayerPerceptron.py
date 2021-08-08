@@ -1,5 +1,5 @@
 import numpy as np
-from MyUtils.Utils import *
+from MyUtils.utils import *
 
 # 超参数，隐藏层单元个数
 num_hidden = 256

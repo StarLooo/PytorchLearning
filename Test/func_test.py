@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import matplotlib.pylab as plt
-from MyUtils.Utils import *
+from MyUtils.utils import *
 
 if __name__ == '__main__':
     # 测试relu()函数

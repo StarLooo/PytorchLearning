@@ -1,4 +1,4 @@
-from MyUtils.Utils import *
+from MyUtils.utils import *
 import numpy as np
 import torch.utils.data
 

@@ -1,5 +1,5 @@
 import numpy as np
-from MyUtils.Utils import *
+from MyUtils.utils import *
 
 # 超参数:迭代次数num_epochs
 num_epochs = 5

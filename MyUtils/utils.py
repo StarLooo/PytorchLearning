@@ -170,3 +170,16 @@ def xy_plot(x_values, y_values, name):
     plt.xlabel('x')
     plt.ylabel(name + '(x)')
     showFigure()
+
+
+# 半对数作图
+def semilogy(x_values, y_values, x_label, y_label, x2_values=None, y2_values=None,
+             legend=None, figsize=(3.5, 2.5)):
+    setFigureSize(figsize)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.semilogy(x_values, y_values)
+    if x2_values and y2_values:
+        plt.semilogy(x2_values, y2_values, linestyle=':')
+        plt.legend(legend)
+    showFigure()
