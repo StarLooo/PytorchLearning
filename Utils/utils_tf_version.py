@@ -22,7 +22,6 @@ class Timer:
         self.times = []
         self.start()
 
-
     def start(self):
         """启动计时器。"""
         self.tik = time.time()

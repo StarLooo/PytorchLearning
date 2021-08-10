@@ -190,9 +190,9 @@ def show_images(images, num_rows, num_cols, titles=None, scale=1.5):
 
 
 # @save
-# 使用4个进程来读取数据。
-def get_data_loader_workers():
-    return 1
+# 使用n_jobs个进程来读取数据
+def get_data_loader_workers(n_jobs=1):
+    return n_jobs
 
 
 # @save

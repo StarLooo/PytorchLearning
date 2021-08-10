@@ -49,9 +49,9 @@ def show_images(images, num_rows, num_cols, titles=None, scale=1.5):
 
 
 # @save
-# 使用4个进程来读取数据。
-def get_data_loader_workers():
-    return 1
+# 使用n_jobs个进程来读取数据
+def get_data_loader_workers(n_jobs=1):
+    return n_jobs
 
 
 # @save
@@ -211,10 +211,45 @@ def softmax_regression_net_wheel():
         return utils.sgd([W, b], lr, batch_size)
 
     # 初始分类精度，应该接近0.1
-    evaluate_accuracy(net, test_iter)
+    print(evaluate_accuracy(net, test_iter))
 
     # 开始训练
-    train_ch3(net, train_iter, test_iter, cross_entropy, num_epochs, updater)
+    train_ch3(net, train_iter, test_iter, loss, num_epochs, updater)
+
+    # 部分预测展示
+    predict_ch3(net, test_iter)
+
+
+# softmax回归简单实现
+def softmax_regression_net_easy():
+    # 获取数据迭代器
+    train_iter, test_iter = load_data_fashion_mnist(batch_size=batch_size)
+    for X, y in train_iter:
+        print("train data shape:", X.shape,
+              "train data type:", X.dtype)
+        print("test data shape:", y.shape,
+              "test data type:", y.dtype)
+        break
+
+    # 定义模型和损失、优化器
+    # PyTorch不会隐式地调整输入的形状。因此，
+    # 我们在线性层前定义了展平层flatten，来调整网络输入的形状
+    net = nn.Sequential(nn.Flatten(), nn.Linear(784, 10))
+    loss = nn.CrossEntropyLoss()
+    trainer = torch.optim.SGD(net.parameters(), lr=0.1)
+
+    # 参数初始化
+    def init_weights(m):
+        if type(m) == nn.Linear:
+            nn.init.normal_(m.weight, std=0.01)
+
+    net.apply(init_weights)
+
+    # 初始分类精度，应该接近0.1
+    print(evaluate_accuracy(net, test_iter))
+
+    # 开始训练
+    train_ch3(net, train_iter, test_iter, loss, num_epochs, trainer)
 
     # 部分预测展示
     predict_ch3(net, test_iter)
@@ -222,3 +257,5 @@ def softmax_regression_net_wheel():
 
 if __name__ == '__main__':
     softmax_regression_net_wheel()
+    print("***************************************")
+    softmax_regression_net_easy()
