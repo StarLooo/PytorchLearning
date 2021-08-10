@@ -1,164 +1,23 @@
 # -*- coding: utf-8 -*-
 import os
-import random
-import time
+import warnings
 
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.utils.data
 import torchvision
 import torchvision.transforms as transforms
-from IPython import display
-from matplotlib import pyplot as plt
 from torch.utils import data
+from matplotlib import pyplot as plt
+import Utils.utils_torch_version as utils
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-# 全局变量,控制是否显示绘图
-is_show_figure = True
-
-
-# 记录多次运行时间。
-class Timer:
-    def __init__(self):
-        self.tik = 0
-        self.times = []
-        self.start()
-
-    def start(self):
-        """启动计时器。"""
-        self.tik = time.time()
-
-    def stop(self):
-        """停止计时器并将时间记录在列表中。"""
-        self.times.append(time.time() - self.tik)
-        return self.times[-1]
-
-    def avg(self):
-        """返回平均时间。"""
-        return sum(self.times) / len(self.times)
-
-    def sum(self):
-        """返回时间总和。"""
-        return sum(self.times)
-
-    def cumsum(self):
-        """返回累计时间。"""
-        return np.array(self.times).cumsum().tolist()
-
-
-# @save
-# only for jupyter
-# 在动画中绘制数据
-class Animator:
-
-    def __init__(self, xlabel=None, ylabel=None, legend=None, xlim=None,
-                 ylim=None, xscale='linear', yscale='linear',
-                 fmts=('-', 'm--', 'g-.', 'r:'), nrows=1, ncols=1,
-                 figsize=(3.5, 2.5)):
-        # 增量地绘制多条线
-        if legend is None:
-            legend = []
-        self.fig, self.axes = plt.subplots(nrows, ncols, figsize=figsize)
-        if nrows * ncols == 1:
-            self.axes = [self.axes, ]
-        # 使用lambda函数捕获参数
-        self.config_axes = lambda: (self.axes[0], xlabel, ylabel, xlim, ylim, xscale, yscale, legend)
-        self.X, self.Y, self.fmts = None, None, fmts
-
-    def add(self, x, y):
-        # 向图表中添加多个数据点
-        if not hasattr(y, "__len__"):
-            y = [y]
-        n = len(y)
-        if not hasattr(x, "__len__"):
-            x = [x] * n
-        if not self.X:
-            self.X = [[] for _ in range(n)]
-        if not self.Y:
-            self.Y = [[] for _ in range(n)]
-        for i, (a, b) in enumerate(zip(x, y)):
-            if a is not None and b is not None:
-                self.X[i].append(a)
-                self.Y[i].append(b)
-        self.axes[0].cla()
-        for x, y, fmt in zip(self.X, self.Y, self.fmts):
-            self.axes[0].plot(x, y, fmt)
-        self.config_axes()
-        display.display(self.fig)
-        display.clear_output(wait=True)
-
-
-# # 用矢量图显示
-# def useSvgDisplay():
-#     display.set_matplotlib_formats('svg')
-
-
-# 设置图的尺寸
-def set_figsize(figureSize=(3.5, 2.5)):
-    plt.rcParams['figure.figsize'] = figureSize
-
-
-# 根据全局变量is_show_figure的值来决定是否显示matplotlib库中的绘图函数的绘图
-def show_figure():
-    if is_show_figure:
-        plt.show()
-        # plt.pause(5)
-
-
-# @Save
-# 生成数据集
-def synthetic_data(w, b, num_examples):
-    """生成 y = Xw + b + noise。"""
-    d = len(w)
-    X = torch.normal(mean=0, std=1, size=(num_examples, d))
-    y = torch.matmul(X, w) + b
-    noise = torch.normal(mean=0, std=0.01, size=y.shape)
-    y += noise
-    return X, y.reshape((-1, 1))  # 将y转换为为列向量
-
-
-# @Save
-# 小批量数据产生器
-def data_iter(batch_size, features, labels):
-    num_examples = len(features)
-    indices = list(range(num_examples))
-    # 这些样本是随机读取的，没有特定的顺序
-    random.shuffle(indices)
-    for i in range(0, num_examples, batch_size):
-        batch_indices = torch.tensor(
-            indices[i: min(i + batch_size, num_examples)])
-        yield features[batch_indices], labels[batch_indices]
-
-
-# @save
-# 线性回归模型函数
-def linear_regression(X, w, b):
-    assert X.shape[1] == len(w)
-    return torch.matmul(X, w) + b
-
-
-# @save
-# 均方损失函数
-def squared_loss(y_hat, y_true):
-    return (y_hat - y_true.reshape(y_hat.shape)) ** 2 / 2
-
-
-# @save
-# 小批量随机梯度下降函数
-def sgd(params, lr, batch_size):
-    with torch.no_grad():
-        for param in params:
-            param -= lr * param.grad / batch_size
-            param.grad.zero_()
-
-
-# @save
-# 构造一个torch数据迭代器
-def load_array(data_arrays, batch_size, is_train=True):
-    dataset = data.TensorDataset(*data_arrays)
-    return data.DataLoader(dataset, batch_size, shuffle=is_train)
+warnings.filterwarnings("ignore", module="torch")
+# 超参数batch_size，批量大小
+batch_size = 10
+# 超参数num_epochs，迭代次数
+num_epochs = 5
+# 超参数lr，学习率
+lr = 0.1
 
 
 # @save
@@ -186,7 +45,7 @@ def show_images(images, num_rows, num_cols, titles=None, scale=1.5):
         ax.axes.get_yaxis().set_visible(False)
         if titles:
             ax.set_title(titles[i])
-    show_figure()
+    utils.show_figure()
 
 
 # @save
@@ -303,3 +162,63 @@ def predict_ch3(net, test_iter, n=6):
         titles = [true + '\n' + pred for true, pred in zip(trues, preds)]
         show_images(X[0:n].reshape((n, 28, 28)), 1, n, titles=titles[0:n])
         break
+
+
+# 定义softmax操作
+def softmax(X):
+    X_exp = torch.exp(X)
+    partition = X_exp.sum(1, keepdim=True)
+    return X_exp / partition  # 这里应用了广播机制
+
+
+# 定义softmax回归
+def softmax_regression(X, W, b):
+    return softmax(torch.matmul(X.reshape((-1, W.shape[0])), W) + b)
+
+
+# 定义交叉熵损失
+def cross_entropy(y_hat, y_true):
+    return - torch.log(y_hat[range(len(y_hat)), y_true])
+
+
+# softmax回归从零开始实现
+def softmax_regression_net_wheel():
+    # 获取数据迭代器
+    train_iter, test_iter = load_data_fashion_mnist(batch_size=batch_size)
+    for X, y in train_iter:
+        print("train data shape:", X.shape,
+              "train data type:", X.dtype)
+        print("test data shape:", y.shape,
+              "test data type:", y.dtype)
+        break
+
+    # 设置输入和输出层数
+    num_inputs = 784
+    num_outputs = 10
+
+    # 初始化模型参数
+    W = torch.normal(0, 0.01, size=(num_inputs, num_outputs), requires_grad=True)
+    b = torch.zeros(num_outputs, requires_grad=True)
+
+    # 定义模型和损失
+    def net(X):
+        return softmax_regression(X, W, b)
+
+    loss = cross_entropy
+
+    # 定义updater
+    def updater(batch_size):
+        return utils.sgd([W, b], lr, batch_size)
+
+    # 初始分类精度，应该接近0.1
+    evaluate_accuracy(net, test_iter)
+
+    # 开始训练
+    train_ch3(net, train_iter, test_iter, cross_entropy, num_epochs, updater)
+
+    # 部分预测展示
+    predict_ch3(net, test_iter)
+
+
+if __name__ == '__main__':
+    softmax_regression_net_wheel()

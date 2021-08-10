@@ -18,9 +18,10 @@ is_show_figure = True
 # 记录多次运行时间。
 class Timer:
     def __init__(self):
+        self.tik = 0
         self.times = []
         self.start()
-        self.tik = 0
+
 
     def start(self):
         """启动计时器。"""
