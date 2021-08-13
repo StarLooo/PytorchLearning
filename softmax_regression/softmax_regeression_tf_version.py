@@ -8,7 +8,7 @@ import Utils.utils_tf_version as utils
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 warnings.filterwarnings("ignore", module="torch")
 # 超参数batch_size，批量大小
-batch_size = 10
+batch_size = 256
 # 超参数num_epochs，迭代次数
 num_epochs = 5
 # 超参数lr，学习率
@@ -78,13 +78,6 @@ def accuracy(y_hat, y):
         y_hat = tf.argmax(y_hat, axis=1)
     cmp = tf.cast(y_hat, y.dtype) == y
     return float(tf.reduce_sum(tf.cast(cmp, y.dtype)))
-
-
-# def accuracy(y_hat, y_true):
-#     if len(y_hat.shape) > 1 and y_hat.shape[1] > 1:
-#         y_hat = tf.argmax(y_hat, axis=1)
-#     cmp = tf.cast(y_hat, y_true.dtype) == y_true
-#     return float(tf.reduce_sum(tf.cast(cmp, y_true.dtype)))
 
 
 # @save
@@ -165,6 +158,17 @@ def predict_ch3(net, test_iter, n=6):
         break
 
 
+# 自定义一个简单的小批量随机梯度下降updater
+# @save
+class Updater:
+    def __init__(self, params, lr):
+        self.params = params
+        self.lr = lr
+
+    def __call__(self, batch_size, grads):
+        utils.sgd(self.params, grads, self.lr, batch_size)
+
+
 # 定义softmax操作
 def softmax(X):
     X_exp = tf.exp(X)
@@ -180,17 +184,6 @@ def softmax_regression(X, W, b):
 # 定义交叉熵损失
 def cross_entropy(y_hat, y):
     return -tf.math.log(tf.boolean_mask(y_hat, tf.one_hot(y, depth=y_hat.shape[-1])))
-
-
-# 自定义一个简单的小批量随机梯度下降updater
-# @save
-class Updater:
-    def __init__(self, params, lr):
-        self.params = params
-        self.lr = lr
-
-    def __call__(self, batch_size, grads):
-        utils.sgd(self.params, grads, self.lr, batch_size)
 
 
 # softmax回归从零开始实现

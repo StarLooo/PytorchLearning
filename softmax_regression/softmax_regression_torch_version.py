@@ -13,7 +13,7 @@ import Utils.utils_torch_version as utils
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 warnings.filterwarnings("ignore", module="torch")
 # 超参数batch_size，批量大小
-batch_size = 10
+batch_size = 256
 # 超参数num_epochs，迭代次数
 num_epochs = 5
 # 超参数lr，学习率

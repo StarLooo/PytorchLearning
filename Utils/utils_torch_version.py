@@ -303,3 +303,15 @@ def predict_ch3(net, test_iter, n=6):
         titles = [true + '\n' + pred for true, pred in zip(trues, preds)]
         show_images(X[0:n].reshape((n, 28, 28)), 1, n, titles=titles[0:n])
         break
+
+
+# @save
+# 评估给定数据集上模型的损失
+def evaluate_loss(net, data_iter, loss):
+    metric = Accumulator(2)  # 损失的总和,样本数量
+    for X, y in data_iter:
+        y_pred = net(X)
+        y = y.reshape(y_pred.shape)
+        l = loss(y_pred, y)
+        metric.add(l.sum(), l.numel())
+    return metric[0] / metric[1]
