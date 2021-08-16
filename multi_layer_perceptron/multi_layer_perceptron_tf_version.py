@@ -7,7 +7,7 @@ import tensorflow as tf
 import Utils.utils_tf_version as utils
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-warnings.filterwarnings("ignore", module="torch")
+warnings.filterwarnings("ignore", module="tensorflow")
 # 超参数batch_size，批量大小
 batch_size = 256
 # 超参数num_epochs，迭代次数

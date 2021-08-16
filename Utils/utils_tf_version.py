@@ -274,3 +274,17 @@ def evaluate_loss(net, data_iter, loss):  # @save
         l = loss(net(X), y)
         metric.add(tf.reduce_sum(l), tf.size(l))
     return metric[0] / metric[1]
+
+
+# @save
+# 计算二维互相关运算
+def corr2d(X, K):
+    assert X.shape.ndims == 2 and X.shape.ndims == 2
+    h_n_in, w_n_in = X.shape
+    h_k_in, w_k_in = K.shape
+    h_out, w_out = h_n_in - h_k_in + 1, w_n_in - w_k_in + 1
+    Y = tf.Variable(tf.zeros((h_out, w_out)))
+    for i in range(h_out):
+        for j in range(w_out):
+            Y[i, j].assign(tf.reduce_sum(X[i: i + h_k_in, j: j + w_k_in] * K))
+    return Y

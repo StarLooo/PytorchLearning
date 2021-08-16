@@ -315,3 +315,17 @@ def evaluate_loss(net, data_iter, loss):
         l = loss(y_pred, y)
         metric.add(l.sum(), l.numel())
     return metric[0] / metric[1]
+
+
+# @save
+# 计算二维互相关运算
+def corr2d(X, K):
+    assert X.dim() == 2 and K.dim() == 2
+    h_n_in, w_n_in = X.shape
+    h_k_in, w_k_in = K.shape
+    h_out, w_out = h_n_in - h_k_in + 1, w_n_in - w_k_in + 1
+    Y = torch.zeros((h_out, w_out))
+    for i in range(h_out):
+        for j in range(w_out):
+            Y[i, j] = (X[i: i + h_k_in, j: j + w_k_in] * K).sum()
+    return Y
